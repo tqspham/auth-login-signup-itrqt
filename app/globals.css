@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  --color-background: #ffffff;
+  --color-surface: #f8f9fb;
+  --color-primary: #2563eb;
+  --color-secondary: #1e40af;
+  --color-accent: #f59e0b;
+  --color-text: #1f2937;
+  --color-muted-text: #6b7280;
+  --color-border: #e5e7eb;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+}
+
+html {
+  @apply bg-(--color-background) text-(--color-text);
+}
+
+body {
+  @apply font-sans;
+}
+
+input:focus {
+  @apply outline-none ring-2 ring-(--color-primary) ring-offset-2;
+}
+
+button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
