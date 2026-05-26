@@ -38,12 +38,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check session
-  const session = await auth();
-  const sessionToken = session?.user?.id;
-
   // Public paths: allow everyone
   if (publicPaths.includes(pathname)) {
+    // Check session only to redirect authenticated users away from login/signup
+    const session = await auth();
+    const sessionToken = session?.user?.id;
+
     // Authenticated users visiting login/signup should redirect to dashboard
     if ((pathname === '/login' || pathname === '/signup') && sessionToken) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
@@ -53,13 +53,18 @@ export async function proxy(request: NextRequest) {
 
   // Protected paths: require session
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
-  if (isProtected && !sessionToken) {
-    const loginUrl = new URL('/login', request.url);
-    // Only add 'from' parameter if the current path is valid and not a public/auth path
-    if (isValidRedirectPath(pathname)) {
-      loginUrl.searchParams.set('from', pathname);
+  if (isProtected) {
+    const session = await auth();
+    const sessionToken = session?.user?.id;
+
+    if (!sessionToken) {
+      const loginUrl = new URL('/login', request.url);
+      // Only add 'from' parameter if the current path is valid and not a public/auth path
+      if (isValidRedirectPath(pathname)) {
+        loginUrl.searchParams.set('from', pathname);
+      }
+      return NextResponse.redirect(loginUrl);
     }
-    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

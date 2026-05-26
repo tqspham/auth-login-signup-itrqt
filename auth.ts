@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { supabase } from '@/lib/supabase';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET,
   providers: [
     Credentials({
       credentials: {
