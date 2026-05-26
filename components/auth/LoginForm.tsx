@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Mail, Lock, AlertCircle, Loader } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -13,8 +13,29 @@ type FormState = {
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
+function isValidRedirectPath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  // Reject absolute URLs and non-relative paths
+  if (pathname.startsWith('http://') || pathname.startsWith('https://')) {
+    return false;
+  }
+  // Reject auth paths, API routes, Next.js internals, and static assets
+  if (
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next/') ||
+    /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i.test(pathname)
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromParam = searchParams.get('from');
   const [formData, setFormData] = useState<FormState>({
     email: '',
     password: '',
@@ -75,7 +96,13 @@ export function LoginForm() {
         return;
       }
 
-      router.push('/dashboard');
+      // Determine redirect destination
+      let redirectTo = '/dashboard';
+      if (isValidRedirectPath(fromParam)) {
+        redirectTo = fromParam;
+      }
+
+      router.push(redirectTo);
     } catch {
       setGeneralError('An error occurred. Please try again.');
       setIsLoading(false);

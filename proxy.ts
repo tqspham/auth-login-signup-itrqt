@@ -6,6 +6,25 @@ const protectedPaths = ['/dashboard'];
 const authApiPaths = ['/api/auth', '/api/auth/signup'];
 const staticAssets = /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i;
 
+function isValidRedirectPath(pathname: string): boolean {
+  if (!pathname) return false;
+  // Reject absolute URLs and non-relative paths
+  if (pathname.startsWith('http://') || pathname.startsWith('https://')) {
+    return false;
+  }
+  // Reject auth paths, API routes, Next.js internals
+  if (
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next/') ||
+    staticAssets.test(pathname)
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -36,7 +55,10 @@ export async function proxy(request: NextRequest) {
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
   if (isProtected && !sessionToken) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('from', pathname);
+    // Only add 'from' parameter if the current path is valid and not a public/auth path
+    if (isValidRedirectPath(pathname)) {
+      loginUrl.searchParams.set('from', pathname);
+    }
     return NextResponse.redirect(loginUrl);
   }
 

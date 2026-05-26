@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: 'Sign In',
@@ -37,7 +38,9 @@ export default async function LoginPage() {
           <p className="text-(--color-muted-text) mb-8">
             Enter your credentials to access your account
           </p>
-          <LoginForm />
+          <Suspense fallback={<div className="text-center text-(--color-muted-text)">Loading...</div>}>
+            <LoginForm />
+          </Suspense>
           <p className="text-center text-(--color-muted-text) mt-6">
             Don't have an account?{' '}
             <a href="/signup" className="text-(--color-primary) hover:underline font-semibold">
